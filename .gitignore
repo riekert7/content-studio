@@ -1,0 +1,8 @@
+__pycache__/
+.venv/
+watch/
+*.mp4
+!tests/fixtures/*.mp4
+.superpowers/
+.pytest_cache/
+docs/superpowers/
