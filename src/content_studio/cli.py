@@ -12,17 +12,19 @@ def _passthrough(name: str, argv: list[str]) -> int:
         from content_studio.vendor.hookscore import main as vendored
     else:
         from content_studio.vendor.detect import main as vendored
-    sys.argv = [f"cs {name}", *argv]
+    saved, sys.argv = sys.argv, [f"cs {name}", *argv]
     try:
         vendored()
     except SystemExit as e:
         return e.code if isinstance(e.code, int) else 1
+    finally:
+        sys.argv = saved
     return 0
 
 
 def _beats(path: str) -> int:
     try:
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8-sig") as f:
             flags = check_beats(parse_beats(f.read()))
     except (OSError, ValueError) as e:
         print(f"cs beats: {e}", file=sys.stderr)
