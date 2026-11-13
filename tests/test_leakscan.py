@@ -210,3 +210,46 @@ def test_commit_message_hit_not_attributed_to_previous_file(repo):
     commit_all(repo, "second")
     r = scan(repo, "--history")
     assert r.returncode == 1 and "b.md" not in r.stdout
+
+
+def test_pre_commit_scans_renamed_and_edited_file(repo):
+    body = "".join(f"line {i} of plain text\n" for i in range(20))
+    (repo / "a.md").write_text(body)
+    commit_all(repo, "base")
+    subprocess.run(["git", "mv", "a.md", "b.md"], cwd=repo, check=True)
+    (repo / "b.md").write_text(body + "acmecorp\n")
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    assert hook(repo).returncode == 1
+
+
+def test_pre_commit_fails_closed_when_git_diff_fails(repo, tmp_path):
+    (repo / "a.md").write_text("fine\n")
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    real = shutil.which("git")
+    shim = tmp_path / "bin"
+    shim.mkdir()
+    (shim / "git").write_text(f'#!/bin/sh\n[ "$1" = diff ] && exit 128\nexec {real} "$@"\n')
+    (shim / "git").chmod(0o755)
+    subprocess.run(["git", "config", "core.hooksPath", str(HOOKS)], cwd=repo, check=True)
+    r = subprocess.run(
+        [str(HOOKS / "pre-commit")], cwd=repo,
+        env=env_for(repo, PATH=f"{shim}:{os.environ['PATH']}"), capture_output=True, text=True,
+    )
+    assert r.returncode == 2
+
+
+def test_default_mode_skips_deleted_and_dangling(repo):
+    (repo / "gone.md").write_text("fine\n")
+    commit_all(repo, "base")
+    (repo / "gone.md").unlink()  # tracked, deleted in the working tree
+    (repo / "dangling").symlink_to("missing-target")
+    assert scan(repo).returncode == 0
+    assert scan(repo, "gone.md").returncode == 2  # explicit paths still fail closed
+
+
+def test_pre_commit_handles_several_staged_files(repo):
+    (repo / "x.md").write_text("fine\n")
+    (repo / "y.md").write_text("acmecorp\n")
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    r = hook(repo)
+    assert r.returncode == 1 and "y.md:1" in r.stdout + r.stderr

@@ -44,7 +44,9 @@ report() { found=1; printf '%s\n' "$1"; }
 # expand directories, reject missing paths (never a silent pass)
 if [ ${#paths[@]} -eq 0 ]; then
   if git rev-parse --git-dir >/dev/null 2>&1; then
+    # default list only: skip tracked-but-deleted files and dangling symlinks (explicit paths still fail closed)
     mapfile -d '' -t paths < <(git ls-files -co --exclude-standard -z)
+    kept=(); for p in "${paths[@]}"; do [ -e "$p" ] && kept+=("$p"); done; paths=("${kept[@]}")
   else
     mapfile -d '' -t paths < <(find . -type f -not -path './.git/*' -print0)
   fi

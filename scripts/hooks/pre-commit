@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Scan the staged content (index copy) of staged files only. Wired by: git config core.hooksPath scripts/hooks
 here=$(dirname "$(readlink -f "$0")")
-mapfile -d '' -t staged < <(git diff --cached --name-only --diff-filter=ACM -z)
+tmp=$(mktemp) || exit 2; trap 'rm -f "$tmp"' EXIT
+# R included: a renamed-and-edited file must be scanned. Fail closed (exit 2) if git itself fails.
+# (a temp file, not a variable: bash drops the NUL separators from command substitution)
+git diff --cached --name-only --diff-filter=ACMR -z > "$tmp" || { echo "pre-commit: git diff --cached failed" >&2; exit 2; }
+mapfile -d '' -t staged < "$tmp"
 [ ${#staged[@]} -eq 0 ] && exit 0
-exec "$here/../leakscan.sh" --staged -- "${staged[@]}"
+"$here/../leakscan.sh" --staged -- "${staged[@]}"
