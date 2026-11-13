@@ -25,3 +25,5 @@ include = ["src/content_studio/**/*.py", "src/content_studio/vendor/slop.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = ["slow: downloads the whisper model (run with -m slow)"]
