@@ -156,3 +156,57 @@ def test_scanner_does_not_flag_its_own_files(repo):
         cwd=ROOT, env=env_for(repo), capture_output=True, text=True,
     )
     assert r.returncode == 0, r.stdout
+
+
+def test_directory_argument_scanned_recursively(repo):
+    (repo / "sub" / "deep").mkdir(parents=True)
+    (repo / "sub" / "deep" / "a.md").write_text("acmecorp\n")
+    assert scan(repo, "sub").returncode == 1
+
+
+def test_nonexistent_path_exits_2(repo):
+    assert scan(repo, "nope.md").returncode == 2
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root can read anything")
+def test_unreadable_file_is_a_finding(repo):
+    f = repo / "locked.md"
+    f.write_text("fine\n")
+    f.chmod(0)
+    r = scan(repo, "locked.md")
+    f.chmod(0o600)
+    assert r.returncode == 1 and "locked.md:0: unreadable" in r.stdout
+
+
+def test_dash_filename_scanned(repo):
+    (repo / "-evil.md").write_text("acmecorp\n")
+    (repo / "-bin.dat").write_bytes(os.urandom(256) + b"\x00acmecorp\x00")
+    r = scan(repo)
+    assert r.returncode == 1 and "-evil.md:1" in r.stdout and "-bin.dat:0" in r.stdout
+    assert scan(repo, "-evil.md").returncode == 1
+
+
+def test_pipe_in_filename_reported_intact(repo):
+    (repo / "a|b-acmecorp.md").write_text("tok ghp_" + "a1B2c3D4e5" * 3 + "\n")
+    r = scan(repo)
+    assert r.returncode == 1
+    assert "a|b-acmecorp.md:0: path contains acmecorp" in r.stdout
+    assert "a|b-acmecorp.md:1: secret pattern" in r.stdout
+
+
+def test_staged_content_scanned_not_working_tree(repo):
+    (repo / "ok.md").write_text("fine\n")
+    commit_all(repo, "base")
+    (repo / "ok.md").write_text("acmecorp\n")
+    subprocess.run(["git", "add", "ok.md"], cwd=repo, check=True)
+    (repo / "ok.md").write_text("fine\n")  # edited out, unstaged
+    assert hook(repo).returncode == 1
+
+
+def test_commit_message_hit_not_attributed_to_previous_file(repo):
+    (repo / "a.md").write_text("one\n")
+    commit_all(repo, "message mentions acmecorp")
+    (repo / "b.md").write_text("two\n")
+    commit_all(repo, "second")
+    r = scan(repo, "--history")
+    assert r.returncode == 1 and "b.md" not in r.stdout
