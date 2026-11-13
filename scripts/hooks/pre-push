@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Scan the working tree and all history before anything leaves the machine.
+here=$(dirname "$(readlink -f "$0")")
+exec "$here/../leakscan.sh" --history
