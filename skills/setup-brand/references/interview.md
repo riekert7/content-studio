@@ -29,5 +29,5 @@ Ask one question at a time. Wait for the answer. Use their own words in the file
 16. Name three real or realistic viewers: name, age, what they do, what they scroll past, what makes them stop. Make the third one a sceptic.
 
 ## Closing
-- Offer the permission rules: run `cs doctor --allow`, show the JSON, and say they go into `.claude/settings.json` in this project folder so Claude stops asking before each `cs` command. Write the file only if they say yes, and merge with what is already there.
+- Offer the permission rules: run `cs doctor --allow`, show the JSON, and say they go into `.claude/settings.json` in this project folder so Claude stops asking before each web search and fetch. Write the file only if they say yes, and merge with what is already there.
 - Say where the files are (`brands/<name>/`) and that they can edit them any time.

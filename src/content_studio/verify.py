@@ -3,6 +3,7 @@ import re
 
 CRITERIA = ("evidence", "value", "send_reason", "hook", "originality", "rules")
 THRESHOLD = 18
+MIN_QUOTE = 8  # characters: a lone letter or "the" is in every packet
 
 
 def _norm(s: str) -> str:
@@ -11,18 +12,24 @@ def _norm(s: str) -> str:
 
 def verify_marks(packet: str, marks: list[dict], out_there: set[str] | frozenset = frozenset()) -> list[dict]:
     text = _norm(packet)
+    expected = set(re.findall(r"^## Option (\w+)$", packet, re.M))
+    labels = [m.get("option") if isinstance(m, dict) else None for m in marks]
+    if expected and (len(labels) != len(set(labels)) or set(labels) != expected):
+        raise ValueError(f"marks must cover each packet option exactly once ({', '.join(sorted(expected))})")
     results = []
     for m in marks:
         try:
             label, scores, quotes = m["option"], m["scores"], m.get("quotes") or {}
         except (KeyError, TypeError, AttributeError):
             raise ValueError("each mark needs option, scores and quotes") from None
+        if not (isinstance(label, str) and isinstance(scores, dict) and isinstance(quotes, dict)):
+            raise ValueError("each mark needs option (text), scores and quotes (objects)")
         if set(scores) != set(CRITERIA) or not all(isinstance(v, int) and not isinstance(v, bool) and 1 <= v <= 5 for v in scores.values()):
             raise ValueError(f"option {label}: scores must be whole numbers 1 to 5 for exactly {', '.join(CRITERIA)}")
         rejected, valid = [], {}
         for c in CRITERIA:
             v, q = scores[c], _norm(str(quotes.get(c) or ""))
-            if v < 4 and not (q and q in text):
+            if v < 4 and not (len(q) >= MIN_QUOTE and q in text):
                 rejected.append(c)
                 v = 4
             valid[c] = v

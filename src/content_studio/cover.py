@@ -5,15 +5,9 @@ import tempfile
 import textwrap
 from pathlib import Path
 
-from content_studio.check import probe
+from content_studio.check import ffmpeg as _ffmpeg, probe
 
 W, H, GRID_H = 1080, 1920, 1440  # the profile grid shows the middle 3:4 of a 9:16 cover: keep the title inside it
-
-
-def _ffmpeg(args: list, cwd=None) -> None:
-    r = subprocess.run(["ffmpeg", "-v", "error", "-y", *map(str, args)], capture_output=True, text=True, cwd=cwd)
-    if r.returncode:
-        raise ValueError(f"ffmpeg failed: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else r.returncode}")
 
 
 def _font() -> str:
@@ -25,16 +19,17 @@ def _font() -> str:
 
 
 def make_cover(video: Path, out: Path, at: float = 1.0, title: str = "") -> Path:
-    video, out = Path(video), Path(out)
+    video, out = Path(video), Path(out).resolve()
     probe(video)  # a readable video, or ValueError
     out.parent.mkdir(parents=True, exist_ok=True)
+    out.unlink(missing_ok=True)  # a stale cover must not pass for the frame we failed to make
     vf = f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}"
     with tempfile.TemporaryDirectory() as tmp:
         if title.strip():
             Path(tmp, "t.txt").write_text(textwrap.fill(title.strip(), 16), encoding="utf-8")
             vf += (f",drawtext=textfile=t.txt:expansion=none{_font()}:fontsize=88:fontcolor=white:box=1:boxcolor=black@0.65:"
                    "boxborderw=28:line_spacing=14:x=(w-text_w)/2:y=(h-text_h)/2")
-        _ffmpeg(["-ss", at, "-i", video.resolve(), "-frames:v", 1, "-vf", vf, "-q:v", 2, out.resolve()], cwd=tmp)
+        _ffmpeg(["-ss", at, "-i", video.resolve(), "-frames:v", 1, "-vf", vf, "-q:v", 2, out], cwd=tmp)
     if not out.exists():
         raise ValueError(f"no frame at {at} s: the video is shorter than that")
     _ffmpeg(["-i", out, "-vf", f"crop={W}:{GRID_H}", "-q:v", 2, out.with_suffix(".grid.jpg")])
@@ -42,7 +37,7 @@ def make_cover(video: Path, out: Path, at: float = 1.0, title: str = "") -> Path
 
 
 def make_sheet(video: Path, out: Path, frames: int = 8) -> Path:
-    video, out = Path(video), Path(out)
+    video, out = Path(video), Path(out).resolve()
     duration = probe(video)["duration"]
     out.parent.mkdir(parents=True, exist_ok=True)
     _ffmpeg(["-i", video, "-vf", f"fps={frames}/{duration},scale=270:480,drawtext=text='%{{pts\\:hms}}':x=4:y=4:fontsize=16:fontcolor=yellow:box=1:boxcolor=black,tile=4x{-(-frames // 4)}",

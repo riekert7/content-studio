@@ -1,3 +1,4 @@
+import pytest
 import json
 
 from content_studio.cli import main
@@ -139,3 +140,18 @@ def test_packet_cli_bad_options_exit_2(tmp_path, capsys):
     assert main(["packet", "--options", str(tmp_path / "o.json"), "--evidence", str(tmp_path / "e.md"),
                  "--out", str(tmp_path / "p.md")]) == 2
     assert "cs packet" in capsys.readouterr().err
+
+
+def test_marks_must_cover_each_packet_option_once():
+    packet = "# Options\n\n## Option A\nx\n\n## Option B\ny\n"
+    with pytest.raises(ValueError, match="exactly once"):
+        verify_marks(packet, [marks("A", 4)])
+    with pytest.raises(ValueError, match="exactly once"):
+        verify_marks(packet, [marks("A", 4), marks("A", 4)])
+    assert len(verify_marks(packet, [marks("A", 4), marks("B", 4)])) == 2
+
+
+def test_one_letter_quote_does_not_save_a_low_score():
+    m = marks("A", 4, "a", hook=2)
+    m["quotes"]["hook"] = "a"
+    assert verify_marks(PACKET, [m])[0]["rejected"] == ["hook"]

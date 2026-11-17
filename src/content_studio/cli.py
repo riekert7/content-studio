@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 from content_studio.beats import check_beats, parse_beats
@@ -37,11 +38,11 @@ def _beats(path: str) -> int:
 
 
 def _watch(source: str, out: str, transcribe: bool) -> int:
-    from content_studio.watch import WatchError, watch  # lazy: keeps other subcommands fast
+    from content_studio.watch import watch  # lazy: keeps other subcommands fast
 
     try:
         folder = watch(source, Path(out), transcribe)
-    except WatchError as e:
+    except ValueError as e:  # WatchError, or the shared ffmpeg/probe helpers
         print(f"cs watch: {e}", file=sys.stderr)
         return 2
     print(folder.resolve())  # last line of stdout
@@ -66,7 +67,7 @@ def _doctor(as_json: bool, allow: bool, url: str | None) -> int:
     checks = doctor.run_checks()
     ok = all(c.ok for c in checks if c.required)
     doctor.write_marker(ok)
-    print(json.dumps([c.__dict__ for c in checks], indent=2) if as_json else doctor.report(checks))
+    print(json.dumps([asdict(c) for c in checks], indent=2) if as_json else doctor.report(checks))
     if not ok:
         print("\nSome required tools are MISSING. Run the fix lines above, then run the doctor again.", file=sys.stderr)
     return 0 if ok else 1
@@ -80,12 +81,12 @@ def _packet(options: str, evidence: str, out: str, seed: int) -> int:
         if not isinstance(opts, list) or not opts or not all(isinstance(o, dict) for o in opts):
             raise ValueError("options.json must be a non-empty list of options")
         text, labels = build_packet(opts, Path(evidence).read_text(encoding="utf-8-sig"), seed)
+        o = Path(out)
+        o.write_text(text, encoding="utf-8")
+        o.with_name("packet.map.json").write_text(json.dumps(labels, indent=2), encoding="utf-8")
     except (OSError, ValueError, KeyError) as e:  # json.JSONDecodeError is a ValueError
         print(f"cs packet: {e!r}" if isinstance(e, KeyError) else f"cs packet: {e}", file=sys.stderr)
         return 2
-    o = Path(out)
-    o.write_text(text, encoding="utf-8")
-    o.with_name("packet.map.json").write_text(json.dumps(labels, indent=2), encoding="utf-8")
     print(o.resolve())
     return 0
 
@@ -97,7 +98,7 @@ def _verify(packet: str, marks: str, out_there: str) -> int:
         marked = _read_json(marks)
         if not isinstance(marked, list):
             raise ValueError("marks must be a JSON list")
-        results = verify_marks(Path(packet).read_text(encoding="utf-8-sig"), marked, set(filter(None, out_there.split(","))))
+        results = verify_marks(Path(packet).read_text(encoding="utf-8-sig"), marked, {x.strip() for x in out_there.split(",") if x.strip()})
     except (OSError, ValueError) as e:
         print(f"cs verify: {e}", file=sys.stderr)
         return 2
@@ -206,13 +207,11 @@ def main(argv: list[str] | None = None) -> int:
         "verify": lambda: _verify(args.packet, args.marks, args.out_there),
         "check": lambda: _check(args.file, args.json),
         "cover": lambda: _cover(args.video, args.at, args.title, args.out, args.sheet),
+        "beats": lambda: _beats(args.file),
+        "watch": lambda: _watch(args.source, args.out, not args.no_transcript),
     }
     if args.cmd in handlers:
         return handlers[args.cmd]()
-    if args.cmd == "beats":
-        return _beats(args.file)
-    if args.cmd == "watch":
-        return _watch(args.source, args.out, not args.no_transcript)
     p.print_help()
     return 0
 

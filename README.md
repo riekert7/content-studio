@@ -28,12 +28,12 @@ Third-party plugins do not update on their own. To switch it on: run `/plugin`, 
 
 ## Permissions
 
-A plugin cannot grant itself permission, so Claude will ask before running its commands. To stop the prompts, run `uvx --from "git+https://github.com/riekert7/content-studio@v0.1.0" cs doctor --allow` (or let `/content-studio:doctor` do it) and put the rules it prints into `.claude/settings.json` in your project folder:
+A plugin cannot grant itself permission. The skills ask only for their own commands, but Claude may still stop to ask before each web search or page fetch. To stop those prompts, run `uvx --from "git+https://github.com/riekert7/content-studio@v0.1.0" cs doctor --allow` (or let `/content-studio:doctor` do it) and put the rules it prints into `.claude/settings.json` in your project folder:
 
 ```json
 {
   "permissions": {
-    "allow": ["WebSearch", "WebFetch", "Bash(uvx --from *content-studio* cs *)"]
+    "allow": ["WebSearch", "WebFetch", "Bash(uvx --from \"git+https://github.com/riekert7/content-studio@v0.1.0\" cs *)"]
   }
 }
 ```

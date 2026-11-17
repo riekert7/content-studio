@@ -17,4 +17,4 @@ Any score below 4 must carry a quote: words copied exactly from the packet that 
 
 ## What the code does with the marks
 
-`cs verify` rejects any score below 4 whose quote is not an exact piece of the packet (whitespace ignored) and counts it as 4. An option is dropped under 18 of 30 or with any score of 1. The out-there option is never dropped on score alone: it is flagged "below threshold, your call".
+`cs verify` rejects any score below 4 whose quote is not an exact piece of the packet (whitespace ignored, at least 8 characters) and counts it as 4. An option is dropped under 18 of 30 or with any score of 1. The out-there option is never dropped on score alone: it is flagged "below threshold, your call".

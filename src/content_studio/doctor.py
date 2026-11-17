@@ -50,12 +50,16 @@ def run_checks(which=shutil.which, whisper_cached: bool | None = None) -> list[C
 
 def allow_list() -> dict:
     """Rules to paste into .claude/settings.json: a plugin cannot ship permissions, so the user adds them."""
-    return {"permissions": {"allow": ["WebSearch", "WebFetch", "Bash(uvx --from *content-studio* cs *)"]}}
+    # the exact pinned source: a wildcard like *content-studio* would also approve any look-alike package
+    from content_studio.cli import VERSION
+
+    src = f"git+https://github.com/riekert7/content-studio@v{VERSION}"
+    return {"permissions": {"allow": ["WebSearch", "WebFetch", f'Bash(uvx --from "{src}" cs *)']}}
 
 
 def probe_url(url: str, run=subprocess.run) -> tuple[bool, str]:
     try:
-        r = run(["yt-dlp", "--simulate", "--no-warnings", "--no-playlist", url], capture_output=True, text=True, timeout=60)
+        r = run(["yt-dlp", "--simulate", "--no-warnings", "--no-playlist", "--", url], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired):
         return False, NO_DOWNLOAD
     return (True, "that link can be downloaded") if r.returncode == 0 else (False, NO_DOWNLOAD)

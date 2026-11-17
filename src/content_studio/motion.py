@@ -4,7 +4,6 @@ cuts: more than half of the 8x8 cells change by over 10% and so does the whole f
 a cut replaces them. Plus jump cuts: an isolated one-step spike (same framing, a small shift or a ~9% zoom).
 """
 import subprocess
-import sys
 
 import numpy as np
 
@@ -32,7 +31,3 @@ def cuts(path, fps=FPS):
             out.append(t)
     return out
 
-
-if __name__ == "__main__":
-    ct = cuts(sys.argv[1])
-    print(f"cuts {len(ct)}: {ct}")

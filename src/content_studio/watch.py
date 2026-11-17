@@ -16,6 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from content_studio.check import ffmpeg as _ffmpeg, probe
 from content_studio.motion import cuts
 
 TS = "drawtext=text='%{pts\\:hms}':x=4:y=4:fontsize=16:fontcolor=yellow:box=1:boxcolor=black"
@@ -25,7 +26,7 @@ INSTALL = {"ffmpeg": "install ffmpeg (for example `sudo pacman -S ffmpeg` or `su
            "yt-dlp": "install yt-dlp (for example `uv tool install yt-dlp` or `pipx install yt-dlp`)"}
 
 
-class WatchError(Exception):
+class WatchError(ValueError):
     pass
 
 
@@ -38,28 +39,12 @@ def _log(msg: str) -> None:
     print(msg, file=sys.stderr, flush=True)
 
 
-def _ffmpeg(args: list[str], cwd: Path | None = None) -> None:
-    r = subprocess.run(["ffmpeg", "-v", "error", "-y", *args], capture_output=True, text=True, cwd=cwd)
-    if r.returncode:
-        raise WatchError(f"ffmpeg failed: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else r.returncode}")
-
-
-def _probe(video: Path) -> tuple[bool, float]:
-    """(has audio, duration in s); raises WatchError if there is no readable video stream."""
-    err = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(video)], capture_output=True, text=True).stderr
-    if not re.search(r"Stream #\S+.*: Video:", err):
-        raise WatchError(f"{video.name} is unreadable or has no video stream.")
-    m = re.search(r"Duration: (\d+):(\d+):(\d+(?:\.\d+)?)", err)
-    dur = int(m[1]) * 3600 + int(m[2]) * 60 + float(m[3]) if m else 0.0
-    return bool(re.search(r"Stream #\S+.*: Audio:", err)), dur
-
-
 def _download(url: str, out: Path) -> Path:
     template = f"{str(out).replace('%', '%%')}/%(extractor)s-%(id)s/video.%(ext)s"
     try:
         r = subprocess.run(["yt-dlp", "-q", "--no-warnings", "--no-playlist", "-f", "mp4/bestvideo*+bestaudio/best",
                             "--merge-output-format", "mp4", "--write-info-json", "-o", template,
-                            "--print", "after_move:filepath", url], capture_output=True, text=True, check=True)
+                            "--print", "after_move:filepath", "--", url], capture_output=True, text=True, check=True)
         return Path(r.stdout.strip().splitlines()[-1])
     except (subprocess.CalledProcessError, OSError, IndexError) as e:
         raise WatchError(DOWNLOAD_FAILED) from e
@@ -103,10 +88,14 @@ def watch(source: str, out: Path = Path("watch"), transcribe: bool = True) -> Pa
     else:
         raise WatchError(f"{source!r} is not a file that exists and not a link (http:// or https://).")
 
-    has_audio, dur = _probe(v)
+    try:
+        info = probe(v)
+    except ValueError as e:
+        raise WatchError(str(e)) from None
+    has_audio, dur = info["audio"], info["duration"]
     _log("hook sheet...")
     # trim=0:3 uses what exists in a video shorter than 3 s
-    _ffmpeg(["-i", "video.mp4", "-vf", f"trim=0:3,fps=2,scale=216:-1,{TS},tile=6x1", "-frames:v", "1", "hook.jpg"], cwd=d)
+    _ffmpeg(["-i", v.name, "-vf", f"trim=0:3,fps=2,scale=216:-1,{TS},tile=6x1", "-frames:v", "1", "hook.jpg"], cwd=d)
     _log("finding cuts...")
     ct = cuts(v)
     # every cut, plus 10 across so a one-shot talking head still gets a sheet
@@ -114,8 +103,9 @@ def watch(source: str, out: Path = Path("watch"), transcribe: bool = True) -> Pa
     sel = "+".join(["eq(n\\,0)"] + [f"gte(t\\,{c})*lt(prev_t\\,{c})" for c in at])
     for old in d.glob("scenes-*.jpg"):
         old.unlink()
-    _ffmpeg(["-i", "video.mp4", "-vf", f"select='{sel}',scale=216:-1,{TS},tile=8x3", "-fps_mode", "vfr",
+    _ffmpeg(["-i", v.name, "-vf", f"select='{sel}',scale=216:-1,{TS},tile=8x3", "-fps_mode", "vfr",
              "scenes-%02d.jpg"], cwd=d)
+    (d / "transcript.txt").unlink(missing_ok=True)  # never leave another run's transcript behind
     if transcribe:
         _log(f"transcribing (model {os.environ.get('CS_WHISPER_MODEL', 'small')}; the first run downloads it)...")
         lines = _transcribe(v, has_audio)

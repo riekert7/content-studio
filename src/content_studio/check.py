@@ -7,14 +7,33 @@ from pathlib import Path
 MAX_SECONDS = 90
 
 
+def ffmpeg(args: list, cwd=None) -> None:
+    """Run ffmpeg quietly, overwriting outputs; ValueError carries its last error line."""
+    r = subprocess.run(["ffmpeg", "-v", "error", "-y", *map(str, args)], capture_output=True, text=True, cwd=cwd)
+    if r.returncode:
+        raise ValueError(f"ffmpeg failed: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else r.returncode}")
+
+
+def _seconds(v) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0  # some webm and mkv files report no duration
+
+
 def probe(path: Path) -> dict:
-    r = subprocess.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)], capture_output=True, text=True)
+    if not Path(path).is_file():  # also keeps ffprobe from opening a URL or protocol string
+        raise ValueError(f"{path} does not exist")
+    try:
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)], capture_output=True, text=True)
+    except OSError:
+        raise ValueError("ffprobe is not on your PATH (it ships with ffmpeg): run `cs doctor` for the install line") from None
     try:
         data = json.loads(r.stdout or "{}")
         video = next(s for s in data["streams"] if s["codec_type"] == "video")
         num, den = video["r_frame_rate"].split("/")
         return {"width": int(video["width"]), "height": int(video["height"]), "fps": round(int(num) / int(den), 2),
-                "duration": float(data["format"]["duration"]), "audio": any(s["codec_type"] == "audio" for s in data["streams"])}
+                "duration": _seconds(data["format"].get("duration")), "audio": any(s["codec_type"] == "audio" for s in data["streams"])}
     except (KeyError, StopIteration, ValueError, ZeroDivisionError):
         raise ValueError(f"{Path(path).name} is unreadable or has no video stream") from None
 
@@ -29,8 +48,6 @@ def loudness(path: Path) -> tuple[float | None, float | None]:
 
 def check_video(path: Path) -> dict:
     path = Path(path)
-    if not path.is_file():
-        raise ValueError(f"{path} does not exist")
     info = probe(path)
     flags = []
     if info["width"] * 16 != info["height"] * 9:
