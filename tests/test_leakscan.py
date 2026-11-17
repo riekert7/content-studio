@@ -62,7 +62,7 @@ def test_term_in_file_name_fails(repo):
 
 
 def test_secret_pattern_fails(repo):
-    (repo / "k.txt").write_text("token = ghp_" + "a1B2c3D4e5" * 3 + "\n")
+    (repo / "k.txt").write_text("token = ghp_" + "a1B2c3D4e5" * 3 + "\n")  # pragma: allowlist secret (synthetic test token)
     r = scan(repo)
     assert r.returncode == 1 and "k.txt:1" in r.stdout
     assert "ghp_" not in r.stdout  # never echo the secret
@@ -187,7 +187,7 @@ def test_dash_filename_scanned(repo):
 
 
 def test_pipe_in_filename_reported_intact(repo):
-    (repo / "a|b-acmecorp.md").write_text("tok ghp_" + "a1B2c3D4e5" * 3 + "\n")
+    (repo / "a|b-acmecorp.md").write_text("tok ghp_" + "a1B2c3D4e5" * 3 + "\n")  # pragma: allowlist secret (synthetic test token)
     r = scan(repo)
     assert r.returncode == 1
     assert "a|b-acmecorp.md:0: path contains acmecorp" in r.stdout
