@@ -4,7 +4,7 @@ This repo is a Claude Code plugin that also works as plain instructions for othe
 
 ## Where things are
 
-- `skills/<name>/SKILL.md`: the workflows (`doctor`, `setup-brand`, `research`, `script`, `make-video`, `cover`). Each starts by running the doctor and carries its own `references/`.
+- `skills/<name>/SKILL.md`: the workflows (`doctor`, `setup-brand`, `research`, `script`, `make-video`, `cover`). Each starts by running the doctor; longer notes sit in its `references/` folder where it has one.
 - `agents/critic.md`, `agents/viewer.md`: read-only helpers a skill starts (a blind critic, an imagined viewer).
 - `templates/brand/` and `examples/lumen-coffee/`: the five brand files, empty and filled (the example is a made-up roastery).
 - `DIRECTOR.md`: the rules every skill follows.

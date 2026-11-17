@@ -21,7 +21,6 @@ def test_skill_shape(skill):
     fm = frontmatter(md)
     assert set(fm) <= ALLOWED and fm["name"] == skill.name and fm["description"]
     assert len(md.read_text().splitlines()) < 500
-    assert (skill / "references").is_dir()
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.name)
