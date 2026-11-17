@@ -1,0 +1,82 @@
+[
+  {
+    "query": "set up my brand for making videos",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to start making short videos for my shop, where do I begin",
+    "should_trigger": true
+  },
+  {
+    "query": "add a new brand to my content folder",
+    "should_trigger": true
+  },
+  {
+    "query": "interview me about my business so Claude knows my voice",
+    "should_trigger": true
+  },
+  {
+    "query": "write my brand voice file",
+    "should_trigger": true
+  },
+  {
+    "query": "create brands/mybrand with the five brand files",
+    "should_trigger": true
+  },
+  {
+    "query": "my brand folder is empty, fill it in",
+    "should_trigger": true
+  },
+  {
+    "query": "who is my viewer? help me describe three of them",
+    "should_trigger": true
+  },
+  {
+    "query": "set me up as a new person to make videos for",
+    "should_trigger": true
+  },
+  {
+    "query": "start content studio for a bakery",
+    "should_trigger": true
+  },
+  {
+    "query": "write a script for my next video",
+    "should_trigger": false
+  },
+  {
+    "query": "find trending reels in my niche",
+    "should_trigger": false
+  },
+  {
+    "query": "make a cover image for my video",
+    "should_trigger": false
+  },
+  {
+    "query": "check ffmpeg is installed",
+    "should_trigger": false
+  },
+  {
+    "query": "edit my clips into a video",
+    "should_trigger": false
+  },
+  {
+    "query": "fix this python bug in my app",
+    "should_trigger": false
+  },
+  {
+    "query": "write a landing page headline",
+    "should_trigger": false
+  },
+  {
+    "query": "post this to instagram",
+    "should_trigger": false
+  },
+  {
+    "query": "summarise this pdf",
+    "should_trigger": false
+  },
+  {
+    "query": "set up my git branch",
+    "should_trigger": false
+  }
+]

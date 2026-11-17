@@ -1,0 +1,29 @@
+[
+  {
+    "id": "a",
+    "title": "The bag that said March",
+    "hook": "This bag was roasted in March. It is November.",
+    "beats": "hand holds old bag\nwe check the date on a supermarket bag\nwe show our roast date\nwe taste both\nthe last line loops to the date",
+    "send_reason": "anyone who buys coffee would send it to a friend who complains about stale beans",
+    "out_there": false,
+    "recommended": false
+  },
+  {
+    "id": "b",
+    "title": "Five tips for better coffee",
+    "hook": "Here are five tips to make better coffee at home.",
+    "beats": "tip one\ntip two\ntip three\ntip four\ntip five",
+    "send_reason": "people like tips",
+    "out_there": false,
+    "recommended": false
+  },
+  {
+    "id": "c",
+    "title": "We are the best roastery in town",
+    "hook": "Welcome to Lumen Coffee, the best coffee in the city.",
+    "beats": "logo\nwe are the best\nbuy now",
+    "send_reason": "it is about us",
+    "out_there": true,
+    "recommended": false
+  }
+]

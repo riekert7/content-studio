@@ -1,0 +1,11 @@
+{
+  "name": "content-studio",
+  "owner": { "name": "riekert7" },
+  "plugins": [
+    {
+      "name": "content-studio",
+      "source": "./",
+      "description": "Brand setup, research, scripts with a blind critic, a first cut and a cover for short vertical videos."
+    }
+  ]
+}

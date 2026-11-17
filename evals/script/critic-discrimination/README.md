@@ -1,0 +1,1 @@
+Manual eval: build a packet from options.json with `cs packet`, run the critic agent on it, then `cs verify`. Option a should survive. Option b should score low on evidence and originality, option c on hook and rules. If the critic keeps b or c, the rubric or the agent text is too soft.

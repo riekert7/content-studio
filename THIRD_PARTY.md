@@ -34,3 +34,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Linked, not bundled
+
+Nothing below is copied into this repo or its package. They are listed in the README so a user can look at them and read the licence for themselves.
+
+| Project | Licence (read on GitHub, 17 Nov 2026) | Note |
+|---|---|---|
+| [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) | Apache-2.0 | write videos as HTML; not used by v0.1 |
+| [feitangyuan/onetake](https://github.com/feitangyuan/onetake) | PolyForm Noncommercial 1.0.0 | no commercial use without its paid licence |
+| [lemomo-ai/lemo-opuscar](https://github.com/lemomo-ai/lemo-opuscar) | none stated (GitHub: NOASSERTION) | ideas only; ask the author before reusing anything |
+| [JohnHeibel/ClaudeAnimationBase](https://github.com/JohnHeibel/ClaudeAnimationBase) | MIT | uses Anthropic's mascot artwork |

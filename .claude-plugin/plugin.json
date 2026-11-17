@@ -1,0 +1,9 @@
+{
+  "name": "content-studio",
+  "version": "0.1.0",
+  "description": "Set up a brand, research what works, script short vertical videos with a blind critic, build a first cut and a cover, using only Claude Code. Nothing paid, no API keys.",
+  "author": { "name": "riekert7" },
+  "license": "MIT",
+  "repository": "https://github.com/riekert7/content-studio",
+  "keywords": ["video", "shorts", "reels", "content", "scripts"]
+}

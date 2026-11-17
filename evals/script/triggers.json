@@ -1,0 +1,82 @@
+[
+  {
+    "query": "write a script for a video about our stale coffee problem",
+    "should_trigger": true
+  },
+  {
+    "query": "give me three options for my next reel",
+    "should_trigger": true
+  },
+  {
+    "query": "what should I film this week",
+    "should_trigger": true
+  },
+  {
+    "query": "plan a short video with a hook and beats",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to make a video about a mistake we made, help me script it",
+    "should_trigger": true
+  },
+  {
+    "query": "make a beats table for my video",
+    "should_trigger": true
+  },
+  {
+    "query": "have the critic score these video ideas",
+    "should_trigger": true
+  },
+  {
+    "query": "pick between these hooks and write the film card",
+    "should_trigger": true
+  },
+  {
+    "query": "turn the research into a video script",
+    "should_trigger": true
+  },
+  {
+    "query": "remix option B and write it up",
+    "should_trigger": true
+  },
+  {
+    "query": "set up my brand files",
+    "should_trigger": false
+  },
+  {
+    "query": "watch this reference video and summarise it",
+    "should_trigger": false
+  },
+  {
+    "query": "edit my takes into a cut",
+    "should_trigger": false
+  },
+  {
+    "query": "make a thumbnail",
+    "should_trigger": false
+  },
+  {
+    "query": "check my doctor setup",
+    "should_trigger": false
+  },
+  {
+    "query": "write a blog post about coffee",
+    "should_trigger": false
+  },
+  {
+    "query": "write a cold email",
+    "should_trigger": false
+  },
+  {
+    "query": "refactor this function",
+    "should_trigger": false
+  },
+  {
+    "query": "post my video to tiktok",
+    "should_trigger": false
+  },
+  {
+    "query": "what is the weather",
+    "should_trigger": false
+  }
+]
